@@ -35,6 +35,9 @@ class PlayerSprite extends SpriteComponent with HasGameReference<UltimateBoard>,
       
     }
 
+  void moveTo(Vector2 newPosition) {
+    position = newPosition;
+  }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {

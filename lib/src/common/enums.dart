@@ -14,3 +14,8 @@ enum MovementDirection {
   southeast,
   southwest,
 }
+
+enum BaseFormation {
+  verticalStack,
+  horizontalStack,
+}

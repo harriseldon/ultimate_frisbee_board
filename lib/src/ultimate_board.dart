@@ -5,20 +5,19 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 //import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
+import 'package:flame/input.dart';
+import 'package:flame/widgets.dart';
+import 'package:flutter/material.dart';
 
 //import 'package:flutter/services.dart';
 //import 'package:ultimate_coaching_board/src/common/blue_player_guides.dart';
 import 'package:ultimate_coaching_board/src/common/enums.dart';
 import 'package:ultimate_coaching_board/src/components/components.dart';
 
-
 import 'package:ultimate_coaching_board/src/config.dart';
 
 class UltimateBoard extends FlameGame
-    with
-        HasCollisionDetection,
-        DragCallbacks,
- TapCallbacks {
+    with HasCollisionDetection, DragCallbacks, TapCallbacks {
   UltimateBoard()
     : super(
         camera: CameraComponent.withFixedResolution(
@@ -38,7 +37,16 @@ class UltimateBoard extends FlameGame
     world.add(PlayArea());
 
     world.add(
-      PlayerSprite(playerType: PlayerType.disc, position: Vector2(width/2 - playerRadius, height*3/4 + discRadius*2), size: Vector2.all(discRadius*2))
+      PlayerSprite(
+        playerType: PlayerType.disc,
+        position: _getDefaultPlayerPosition(
+          PlayerType.disc,
+          0,
+          BaseFormation.verticalStack,
+        ),
+
+        size: Vector2.all(discRadius * 2),
+      ),
       // DiscComponent(
       //   // Add from here...
       //   radius: discRadius,
@@ -66,65 +74,71 @@ class UltimateBoard extends FlameGame
     // );
 
     for (int player = 0; player < 7; player++) {
-     ///
-     ///          O
-     ///          O
-     ///          O
-     ///          O
-     ///   
-     ///   O      O      O
-     
-      Vector2 position;
-      if (player <= 2) {
-        position = Vector2( (player+1)/4 * width, height * 3/4 );
-      } else {
-        position = Vector2( width/2, height/3 + (player-3) * (3*playerRadius)  );
-      }
+      ///
+      ///          O
+      ///          O
+      ///          O
+      ///          O
+      ///
+      ///   O      O      O
 
       world.add(
         PlayerSprite(
           playerType: PlayerType.offence,
-          position: position,
+          position: _getDefaultPlayerPosition(
+            PlayerType.offence,
+            player,
+            BaseFormation.verticalStack,
+          ),
           size: Vector2.all(playerRadius * 2),
         ),
       );
-
-      switch(player) {
-        case 0:
-        case 2:
-
-           position = Vector2( (player+1)/4 * width, height * 3/4 - 2.5*playerRadius);
-           break;
-        case 1:
-           position = Vector2( (player+1)/4 * width + playerRadius*2, height * 3/4 - 2.5*playerRadius);
-           break;
-        case 3:
-           position = Vector2( width/2, height/3 - (2.5*playerRadius)  );
-           break;
-        case 4:
-           position = Vector2( width/2 - 2*playerRadius, height/3 + player * (3*playerRadius) );
-           break;           
-        case 5:
-           position = Vector2( width/2 - 2.5*playerRadius, height/2 );
-           break;            
-
-        case 6:
-           position = Vector2( width/2 + 2.5*playerRadius, height/2 );
-           break;         
-      }
 
       world.add(
         PlayerSprite(
           playerType: PlayerType.defence,
-          position: position,
+          position: _getDefaultPlayerPosition(
+            PlayerType.defence,
+            player,
+            BaseFormation.verticalStack,
+          ),
           size: Vector2.all(playerRadius * 2),
         ),
       );
     }
-    
-    _fadingLineComponent = FadingLineComponent(maxAge: Duration(milliseconds: 1200));
+
+    _fadingLineComponent = FadingLineComponent(
+      maxAge: Duration(milliseconds: 1200),
+    );
 
     world.add(_fadingLineComponent);
+
+    final buttonUp = await Sprite.load('button_up.png');
+    final buttonDown = await Sprite.load('button_down.png');
+
+    // H and V buttons
+    final vButton = SpriteButton(
+      onPressed: () => _resetToFormation(BaseFormation.verticalStack),
+      label: Text('V'),
+      width: 16,
+      height: 16,
+      sprite: buttonUp, 
+      pressedSprite: buttonDown,
+
+    );
+
+    final hButton = SpriteButton(
+      onPressed: () => _resetToFormation(BaseFormation.horizontalStack),
+      label: Text('H'),
+      width: 16,
+      height: 16,
+      sprite: buttonUp, 
+      pressedSprite: buttonDown,
+
+    );    
+
+    //world.add(vButton)
+    
 
     //final runnerImage = await Flame.images.load('spritesheet_blue_full.png');
 
@@ -139,11 +153,11 @@ class UltimateBoard extends FlameGame
     //   );
 
     //world.add(runner1);
-    
+
     //debugMode = true;
   }
 
- @override
+  @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
     final worldPosition = camera.globalToLocal(event.localPosition);
@@ -154,7 +168,7 @@ class UltimateBoard extends FlameGame
   void onDragUpdate(DragUpdateEvent event) {
     // Send the local game position of the finger to the line renderer
     // Use pagePosition and convert it to world coordinates if your game has a moving camera
-    
+
     final worldPosition = camera.globalToLocal(event.localEndPosition);
 
     _fadingLineComponent.addPoint(worldPosition);
@@ -237,4 +251,139 @@ class UltimateBoard extends FlameGame
   //     add(PenComponent(touchPoint));
   //   }
   // }
+
+  Vector2 _getDefaultPlayerPosition(
+    PlayerType playerType,
+    int player,
+    BaseFormation formation,
+  ) {
+    switch (formation) {
+      case BaseFormation.horizontalStack:
+        switch (playerType) {
+          case PlayerType.disc:
+            return Vector2(
+              width / 2 - playerRadius,
+              height * 3 / 4 + discRadius * 2,
+            );
+          case PlayerType.defence:
+            switch (player) {
+              case 0:
+              case 2:
+                return Vector2(
+                  (player + 1) / 4 * width,
+                  height * 3 / 4 - 2.5 * playerRadius,
+                );
+              //break;
+              case 1:
+                return Vector2(
+                  (player + 1) / 4 * width + playerRadius * 2,
+                  height * 3 / 4 - 2.5 * playerRadius,
+                );
+              //break;
+              case 3:
+                return Vector2(
+                  (player - 2) / 6 * width,
+                  height / 2 - 2 * playerRadius,
+                );
+              //break;
+              case 4:
+                return Vector2(
+                  (player - 2) / 6 * width,
+                  height / 2 + 2 * playerRadius,
+                );
+              //break;
+              case 5:
+                return Vector2(
+                  (player - 2) / 6 * width,
+                  height / 2 - 2 * playerRadius,
+                );
+              //break;
+
+              case 6:
+                return Vector2(
+                  (player - 2) / 6 * width,
+                  height / 2 + 3 * playerRadius,
+                );
+              //break;
+            }
+
+          case PlayerType.offence:
+            if (player <= 2) {
+              return Vector2((player + 1) / 4 * width, height * 3 / 4);
+            } else {
+              return Vector2((player - 2) / 6 * width, height / 2);
+            }
+        }
+
+      case BaseFormation.verticalStack:
+        if (playerType == PlayerType.defence) {
+          switch (player) {
+            case 0:
+            case 2:
+              return Vector2(
+                (player + 1) / 4 * width,
+                height * 3 / 4 - 2.5 * playerRadius,
+              );
+            //break;
+            case 1:
+              return Vector2(
+                (player + 1) / 4 * width + playerRadius * 2,
+                height * 3 / 4 - 2.5 * playerRadius,
+              );
+            //break;
+            case 3:
+              return Vector2(width / 2, height / 3 - (2.5 * playerRadius));
+            //break;
+            case 4:
+              return Vector2(
+                width / 2 - 2 * playerRadius,
+                height / 3 + player * (3 * playerRadius),
+              );
+            //break;
+            case 5:
+              return Vector2(width / 2 - 2.5 * playerRadius, height / 2);
+            //break;
+
+            case 6:
+              return Vector2(width / 2 + 2.5 * playerRadius, height / 2);
+            //break;
+          }
+        } else if (playerType == PlayerType.offence) {
+          if (player <= 2) {
+            return Vector2((player + 1) / 4 * width, height * 3 / 4);
+          } else {
+            return Vector2(
+              width / 2,
+              height / 3 + (player - 3) * (3 * playerRadius),
+            );
+          }
+        } else {
+          //disc
+          return Vector2(
+            width / 2 - playerRadius,
+            height * 3 / 4 + discRadius * 2,
+          );
+        }
+    }
+    //should never get here
+    return Vector2(width/2, height/2);
+  }
+
+  void _resetToFormation(BaseFormation formation) {
+    final offensivePlayers = world.children.where( (c) => c is PlayerSprite && c.playerType == PlayerType.offence ).toList();
+
+    final defensivePlayers = world.children.where( (c) => c is PlayerSprite && c.playerType == PlayerType.defence ).toList();
+
+    final disc = world.children.firstWhere( (c) => c is PlayerSprite && c.playerType == PlayerType.disc ) as PlayerSprite; 
+
+    disc.moveTo(_getDefaultPlayerPosition(PlayerType.disc, 0, formation) );
+
+    for (int player = 0; player < offensivePlayers.length; player++) {
+      final oPlayer = offensivePlayers[player] as PlayerSprite;
+      oPlayer.moveTo(_getDefaultPlayerPosition(PlayerType.offence, player, formation));
+      final dPlayer = defensivePlayers[player] as PlayerSprite;
+      dPlayer.moveTo(_getDefaultPlayerPosition(PlayerType.defence, player, formation));
+    }  
+
+  }
 }
