@@ -42,8 +42,8 @@ class PlayerSprite extends SpriteComponent with HasGameReference<UltimateBoard>,
     super.onDragUpdate(event);
     // velocity.x = event.localDelta.x;
     // velocity.y = event.localDelta.y;
-    position.x = (position.x + event.localDelta.x).clamp(size.x, game.width-size.x);
-    position.y = (position.y + event.localDelta.y).clamp(size.y, game.height-size.y);
+    position.x = (position.x + event.localDelta.x).clamp(0, game.width-size.x);
+    position.y = (position.y + event.localDelta.y).clamp(0, game.height-size.y);
   }
 
   @override
