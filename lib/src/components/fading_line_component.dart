@@ -8,11 +8,12 @@ class FadingLineComponent extends PositionComponent {
   final List<LinePoint> _points = [];
   
   // Configuration
-  final Duration maxAge = const Duration(milliseconds: 600);
+  final Duration maxAge; // = const Duration(milliseconds: 600);
   final double strokeWidth = 8.0;
 
-  FadingLineComponent() {
+  FadingLineComponent({Duration? maxAge}) : maxAge = maxAge ?? Duration(milliseconds: 600) {
     // Ensure the component matches the game size so it can draw anywhere
+    
     size = Vector2.zero(); 
   }
 

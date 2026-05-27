@@ -122,7 +122,7 @@ class UltimateBoard extends FlameGame
       );
     }
     
-    _fadingLineComponent = FadingLineComponent();
+    _fadingLineComponent = FadingLineComponent(maxAge: Duration(milliseconds: 1200));
 
     world.add(_fadingLineComponent);
 
@@ -143,10 +143,22 @@ class UltimateBoard extends FlameGame
     //debugMode = true;
   }
 
+ @override
+  void onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    final worldPosition = camera.globalToLocal(event.localPosition);
+    _fadingLineComponent.addPoint(worldPosition);
+  }
+
   @override
   void onDragUpdate(DragUpdateEvent event) {
     // Send the local game position of the finger to the line renderer
-    _fadingLineComponent.addPoint(event.localEndPosition);
+    // Use pagePosition and convert it to world coordinates if your game has a moving camera
+    
+    final worldPosition = camera.globalToLocal(event.localEndPosition);
+
+    _fadingLineComponent.addPoint(worldPosition);
+    super.onDragUpdate(event);
   }
 
   // @override

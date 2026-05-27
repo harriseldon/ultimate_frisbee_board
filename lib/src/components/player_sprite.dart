@@ -1,3 +1,4 @@
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:ultimate_coaching_board/src/common/enums.dart';
@@ -5,7 +6,7 @@ import 'package:ultimate_coaching_board/src/ultimate_board.dart';
 
 
 
-class PlayerSprite extends SpriteComponent with HasGameReference<UltimateBoard>, DragCallbacks {
+class PlayerSprite extends SpriteComponent with HasGameReference<UltimateBoard>, DragCallbacks, CollisionCallbacks {
     PlayerSprite({
       required this.playerType,
       required super.position,
@@ -26,6 +27,8 @@ class PlayerSprite extends SpriteComponent with HasGameReference<UltimateBoard>,
       
       //playerType == PlayerType.offence ?  : 'red_player.png';
       super.sprite = await Sprite.load(spriteFileName);
+
+      add(RectangleHitbox());
     }
 
     void startMoving(MovementDirection direction) {
@@ -41,5 +44,23 @@ class PlayerSprite extends SpriteComponent with HasGameReference<UltimateBoard>,
     // velocity.y = event.localDelta.y;
     position.x = (position.x + event.localDelta.x).clamp(size.x, game.width-size.x);
     position.y = (position.y + event.localDelta.y).clamp(size.y, game.height-size.y);
+  }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+
+    // 2. Check if we hit the other sprite component
+    if (other is PlayerSprite) {
+      // Calculate the vector pointing from this sprite to the other sprite
+      Vector2 pushDirection = (other.position - position).normalized();
+      
+      // Calculate a push distance. A simple approach uses the overlap 
+      // or a fixed speed multiplier based on your drag delta.
+      double pushStrength = 5.0; 
+      
+      // Move the second sprite away
+      other.position.add(pushDirection * pushStrength);
+    }
   }
 }
