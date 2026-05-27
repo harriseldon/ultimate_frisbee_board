@@ -5,21 +5,20 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 //import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
-import 'package:flutter/material.dart';
+
 //import 'package:flutter/services.dart';
 //import 'package:ultimate_coaching_board/src/common/blue_player_guides.dart';
 import 'package:ultimate_coaching_board/src/common/enums.dart';
 import 'package:ultimate_coaching_board/src/components/components.dart';
-import 'package:ultimate_coaching_board/src/components/pen_component.dart';
+
 
 import 'package:ultimate_coaching_board/src/config.dart';
 
 class UltimateBoard extends FlameGame
     with
         HasCollisionDetection,
-        //KeyboardEvents,
-        VerticalDragDetector,
-        HorizontalDragDetector, TapCallbacks {
+        DragCallbacks,
+ TapCallbacks {
   UltimateBoard()
     : super(
         camera: CameraComponent.withFixedResolution(
@@ -31,6 +30,7 @@ class UltimateBoard extends FlameGame
   double get width => size.x;
   double get height => size.y;
   final rand = math.Random();
+  late final FadingLineComponent _fadingLineComponent;
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
@@ -121,6 +121,10 @@ class UltimateBoard extends FlameGame
         ),
       );
     }
+    
+    _fadingLineComponent = FadingLineComponent();
+
+    world.add(_fadingLineComponent);
 
     //final runnerImage = await Flame.images.load('spritesheet_blue_full.png');
 
@@ -140,16 +144,22 @@ class UltimateBoard extends FlameGame
   }
 
   @override
-  void onHorizontalDragStart(DragStartInfo info) {
-    debugPrint('Horizontal Drag Started on ${info.eventPosition.widget}');
-    super.onHorizontalDragStart(info);
+  void onDragUpdate(DragUpdateEvent event) {
+    // Send the local game position of the finger to the line renderer
+    _fadingLineComponent.addPoint(event.localEndPosition);
   }
 
-  @override
-  void onHorizontalDragEnd(DragEndInfo info) {
-    debugPrint('Horiztonal Drag End ${info.velocity}');
-    super.onHorizontalDragEnd(info);
-  }
+  // @override
+  // void onHorizontalDragStart(DragStartInfo info) {
+  //   debugPrint('Horizontal Drag Started on ${info.eventPosition.widget}');
+  //   super.onHorizontalDragStart(info);
+  // }
+
+  // @override
+  // void onHorizontalDragEnd(DragEndInfo info) {
+  //   debugPrint('Horiztonal Drag End ${info.velocity}');
+  //   super.onHorizontalDragEnd(info);
+  // }
 
   // @override // Add from here...
   // KeyEventResult onKeyEvent(
@@ -207,12 +217,12 @@ class UltimateBoard extends FlameGame
   //   );
   // }
 
-  @override
-  void onTapDown(TapDownEvent event) {
-    super.onTapDown(event);
-    if(!event.handled) {
-      final touchPoint = event.localPosition;
-      add(PenComponent(touchPoint));
-    }
-  }
+  // @override
+  // void onTapDown(TapDownEvent event) {
+  //   super.onTapDown(event);
+  //   if(!event.handled) {
+  //     final touchPoint = event.localPosition;
+  //     add(PenComponent(touchPoint));
+  //   }
+  // }
 }

@@ -2,3 +2,5 @@
 # FVM Version Cache
 .fvm/
 build/
+.dart_tool/
+.idea/
